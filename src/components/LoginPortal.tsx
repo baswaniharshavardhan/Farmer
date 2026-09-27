@@ -11,20 +11,30 @@ import {
   Leaf,
   UserPlus,
   CheckCircle2,
+  Eye,
+  EyeOff,
+  Globe,
+  Info,
 } from 'lucide-react';
 import { useMarketplace } from '../context/MarketplaceContext';
 import { UserRole } from '../types';
 import { SignUpForms } from './SignUpForms';
+import { useLanguage } from '../context/LanguageContext';
+import { PortalInfoModal } from './PortalInfoModal';
 
 export const LoginPortal: React.FC = () => {
   const { login } = useMarketplace();
+  const { language, setLanguage, t, languages } = useLanguage();
 
   const [activeTab, setActiveTab] = useState<'login' | 'signup'>('login');
   const [selectedRole, setSelectedRole] = useState<UserRole>('consumer');
   const [emailInput, setEmailInput] = useState('elena.rostova@sfbay.org');
   const [passwordInput, setPasswordInput] = useState('Password123!');
+  const [showPassword, setShowPassword] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isPortalInfoOpen, setIsPortalInfoOpen] = useState(false);
+  const [isLangMenuOpen, setIsLangMenuOpen] = useState(false);
 
   // Demo accounts for quick 1-click autofill
   const demoAccounts = [
@@ -108,6 +118,110 @@ export const LoginPortal: React.FC = () => {
           activeTab === 'signup' ? 'max-w-3xl' : 'max-w-md'
         }`}
       >
+        {/* Top Floating Helper Controls (Language + Portal Info) */}
+        <div className="flex items-center justify-between mb-4 px-1 gap-2">
+          <button
+            type="button"
+            onClick={() => setIsPortalInfoOpen(true)}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-neutral-300 hover:text-white text-xs font-bold transition-all shadow-xs cursor-pointer"
+            id="btn-login-portal-info"
+          >
+            <Info className="w-3.5 h-3.5 text-emerald-400" />
+            <span>{t('portalInfo')}</span>
+          </button>
+
+          <div className="flex items-center gap-2">
+            {/* Quick English Switch Button when in another language */}
+            {language !== 'en' && (
+              <button
+                type="button"
+                onClick={() => setLanguage('en')}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-neutral-900 hover:bg-neutral-800 border border-emerald-500/60 text-emerald-300 hover:text-white text-xs font-bold transition-all shadow-xs cursor-pointer animate-in fade-in"
+                title="Switch to English / अंग्रेजी में बदलें"
+                id="btn-login-quick-switch-en"
+              >
+                <span>🇬🇧</span>
+                <span>English</span>
+              </button>
+            )}
+
+            {/* Language Selector */}
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setIsLangMenuOpen(!isLangMenuOpen)}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-neutral-200 text-xs font-bold transition-all shadow-xs cursor-pointer"
+                id="btn-login-lang-switcher"
+              >
+                <Globe className="w-3.5 h-3.5 text-emerald-400" />
+                <span>{languages.find((l) => l.code === language)?.flag}</span>
+                <span>{languages.find((l) => l.code === language)?.nativeName}</span>
+              </button>
+
+              {isLangMenuOpen && (
+                <div className="absolute right-0 mt-2 w-52 bg-neutral-900 border border-neutral-700 rounded-2xl p-2 shadow-2xl z-50 animate-in fade-in zoom-in-95 duration-100">
+                  <div className="text-[10px] font-bold text-neutral-400 px-2 py-1 uppercase tracking-wider">
+                    Select Language / भाषा
+                  </div>
+
+                  {/* Prominent English Button */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setLanguage('en');
+                      setIsLangMenuOpen(false);
+                    }}
+                    className={`w-full flex items-center justify-between px-2.5 py-2 mb-1 rounded-xl text-xs font-bold transition-all text-left cursor-pointer border ${
+                      language === 'en'
+                        ? 'bg-emerald-600 text-white border-emerald-400 shadow-xs'
+                        : 'bg-neutral-950 text-neutral-200 border-neutral-800 hover:bg-neutral-800'
+                    }`}
+                  >
+                    <span className="flex items-center gap-2">
+                      <span className="text-base">🇬🇧</span>
+                      <div>
+                        <div className="font-bold text-white">English</div>
+                        <div className="text-[10px] text-neutral-400 font-normal">Default Language</div>
+                      </div>
+                    </span>
+                    <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-md bg-neutral-800 text-neutral-300 font-bold">
+                      EN
+                    </span>
+                  </button>
+
+                  <div className="text-[9px] font-bold text-neutral-400 px-2 pt-1 pb-0.5 uppercase tracking-wider">
+                    Regional Languages / भाषाएं
+                  </div>
+
+                  <div className="space-y-1 mt-0.5 max-h-56 overflow-y-auto">
+                    {languages.filter((l) => l.code !== 'en').map((l) => (
+                      <button
+                        key={l.code}
+                        type="button"
+                        onClick={() => {
+                          setLanguage(l.code);
+                          setIsLangMenuOpen(false);
+                        }}
+                        className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl text-xs font-medium transition-all text-left cursor-pointer ${
+                          language === l.code
+                            ? 'bg-emerald-600 text-white font-bold'
+                            : 'text-neutral-300 hover:bg-neutral-800'
+                        }`}
+                      >
+                        <span className="flex items-center gap-2">
+                          <span>{l.flag}</span>
+                          <span>{l.nativeName}</span>
+                        </span>
+                        <span className="text-[10px] text-neutral-400 font-mono">{l.code.toUpperCase()}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
         {/* Brand Header */}
         <div className="text-center mb-6">
           <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-500 text-white shadow-xl shadow-emerald-950/60 mb-3 border border-emerald-400/20">
@@ -117,11 +231,11 @@ export const LoginPortal: React.FC = () => {
             FarmDirect
           </h1>
           <p className="text-xs sm:text-sm text-neutral-400 mt-0.5 font-sans">
-            Regional Producer &amp; Cold-Chain Network
+            {t('tagline')}
           </p>
           <div className="mt-1">
             <span className="font-script text-lg text-amber-300 font-bold drop-shadow-xs">
-              ✨ 88% Direct Payout to Regional Kisans
+              ✨ {t('88% Direct to Producer')}
             </span>
           </div>
         </div>
@@ -143,7 +257,7 @@ export const LoginPortal: React.FC = () => {
               }`}
               id="tab-auth-login"
             >
-              Sign In
+              {t('signIn')}
             </button>
             <button
               type="button"
@@ -159,7 +273,7 @@ export const LoginPortal: React.FC = () => {
               id="tab-auth-signup"
             >
               <UserPlus className="w-3.5 h-3.5" />
-              <span>Create Account</span>
+              <span>{t('signUp')}</span>
             </button>
           </div>
 
@@ -169,7 +283,7 @@ export const LoginPortal: React.FC = () => {
               {/* Role Selection */}
               <div>
                 <label className="block text-xs font-semibold text-neutral-300 mb-2">
-                  Select Role
+                  {t('Select Role')}
                 </label>
                 <div className="grid grid-cols-3 gap-2">
                   {demoAccounts.map((acc) => {
@@ -192,7 +306,7 @@ export const LoginPortal: React.FC = () => {
                         id={`btn-role-select-${acc.role}`}
                       >
                         <Icon className="w-4 h-4" />
-                        <span>{acc.label}</span>
+                        <span>{t(acc.label)}</span>
                       </button>
                     );
                   })}
@@ -202,7 +316,7 @@ export const LoginPortal: React.FC = () => {
               {/* Quick 1-Click Demo Fill Chips */}
               <div>
                 <div className="text-[11px] text-neutral-400 mb-1.5 flex items-center justify-between">
-                  <span>Fast Demo Fill:</span>
+                  <span>{t('quickFill')}:</span>
                 </div>
                 <div className="flex gap-1.5">
                   {demoAccounts.map((acc) => (
@@ -216,7 +330,7 @@ export const LoginPortal: React.FC = () => {
                           : 'bg-neutral-950 border-neutral-800 text-neutral-400 hover:text-neutral-300'
                       }`}
                     >
-                      {acc.name ? acc.name.split(' ')[0] : acc.label}
+                      {acc.name ? acc.name.split(' ')[0] : t(acc.label)}
                     </button>
                   ))}
                 </div>
@@ -268,7 +382,7 @@ export const LoginPortal: React.FC = () => {
               {/* Email Input */}
               <div>
                 <label className="block text-xs font-semibold text-neutral-300 mb-1.5">
-                  Email Address
+                  {t('emailAddress')}
                 </label>
                 <div className="relative">
                   <Mail className="w-4 h-4 text-neutral-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
@@ -284,22 +398,51 @@ export const LoginPortal: React.FC = () => {
                 </div>
               </div>
 
-              {/* Password Input */}
+              {/* Password Input with Visibility Toggle */}
               <div>
-                <label className="block text-xs font-semibold text-neutral-300 mb-1.5">
-                  Password
-                </label>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="block text-xs font-semibold text-neutral-300">
+                    {t('password')}
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="text-[11px] text-neutral-400 hover:text-emerald-400 flex items-center gap-1 cursor-pointer transition-colors"
+                    id="btn-toggle-password-visibility"
+                    aria-label="Toggle password visibility"
+                  >
+                    {showPassword ? (
+                      <>
+                        <EyeOff className="w-3.5 h-3.5" />
+                        <span>{t('hidePassword')}</span>
+                      </>
+                    ) : (
+                      <>
+                        <Eye className="w-3.5 h-3.5" />
+                        <span>{t('seePassword')}</span>
+                      </>
+                    )}
+                  </button>
+                </div>
                 <div className="relative">
                   <Key className="w-4 h-4 text-neutral-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                   <input
-                    type="password"
+                    type={showPassword ? 'text' : 'password'}
                     value={passwordInput}
                     onChange={(e) => setPasswordInput(e.target.value)}
                     placeholder="Enter password"
                     required
-                    className="w-full bg-neutral-950 border border-neutral-800 focus:border-emerald-500 rounded-xl py-2.5 pl-9 pr-3 text-xs text-white placeholder:text-neutral-600 focus:outline-hidden transition-colors font-mono"
+                    className="w-full bg-neutral-950 border border-neutral-800 focus:border-emerald-500 rounded-xl py-2.5 pl-9 pr-10 text-xs text-white placeholder:text-neutral-600 focus:outline-hidden transition-colors font-mono"
                     id="input-login-password"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-200 p-1 cursor-pointer"
+                    title={showPassword ? t('hidePassword') : t('seePassword')}
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
                 </div>
               </div>
 
@@ -320,14 +463,14 @@ export const LoginPortal: React.FC = () => {
                   <Lock className="w-4 h-4" />
                   <span>
                     {isSubmitting
-                      ? 'Signing In...'
-                      : `Sign In as ${
+                      ? t('Signing In...')
+                      : `${t('signIn')} (${
                           selectedRole === 'consumer'
-                            ? 'Customer'
+                            ? t('normalBuyer')
                             : selectedRole === 'farmer'
-                            ? 'Farmer'
-                            : 'Admin'
-                        }`}
+                            ? t('farmerKisan')
+                            : t('adminGov')
+                        })`}
                   </span>
                   <ArrowRight className="w-4 h-4 ml-1" />
                 </button>
@@ -335,13 +478,13 @@ export const LoginPortal: React.FC = () => {
 
               {/* Link to Sign Up */}
               <div className="pt-2 text-center text-xs text-neutral-400">
-                Don't have an account?{' '}
+                {t("Don't have an account?")}{' '}
                 <button
                   type="button"
                   onClick={() => setActiveTab('signup')}
                   className="text-emerald-400 hover:text-emerald-300 font-bold underline cursor-pointer"
                 >
-                  Sign Up
+                  {t('signUp')}
                 </button>
               </div>
             </form>
@@ -373,6 +516,12 @@ export const LoginPortal: React.FC = () => {
           Protected &bull; Direct Farm-to-Consumer Food Network
         </div>
       </div>
+
+      {/* Portal Info Educational Modal */}
+      <PortalInfoModal
+        isOpen={isPortalInfoOpen}
+        onClose={() => setIsPortalInfoOpen(false)}
+      />
     </div>
   );
 };

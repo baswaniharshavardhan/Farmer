@@ -37,8 +37,14 @@ import { FarmerSchemesModal } from './FarmerSchemesModal';
 import { UserProfileModal } from './UserProfileModal';
 import { FarmerDailyOverview } from './FarmerDailyOverview';
 import { TransportAvailabilitySection } from './TransportAvailabilitySection';
+import { FarmerDetailView } from './FarmerDetailView';
+import { FarmerSellProduce } from './FarmerSellProduce';
+import { FarmerReceivedMoney } from './FarmerReceivedMoney';
+import { FarmerCropHistoryYields } from './FarmerCropHistoryYields';
+import { useLanguage } from '../context/LanguageContext';
 
 export const FarmerPortal: React.FC = () => {
+  const { t } = useLanguage();
   const {
     farms,
     activeFarm,
@@ -59,7 +65,9 @@ export const FarmerPortal: React.FC = () => {
     currentUser,
   } = useMarketplace();
 
-  const [activeTab, setActiveTab] = useState<'daily' | 'transport' | 'inventory' | 'orders' | 'payouts'>('daily');
+  const [activeTab, setActiveTab] = useState<
+    'view_detail' | 'sell' | 'received_money' | 'crop_history' | 'daily' | 'transport' | 'inventory' | 'orders' | 'payouts'
+  >('view_detail');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [selectedOrderFilter, setSelectedOrderFilter] = useState<'all' | 'Pending' | 'Dispatched' | 'Delivered'>('all');
@@ -322,74 +330,124 @@ export const FarmerPortal: React.FC = () => {
       {/* Tabs navigation - Horizontal Scrollable with Clear Highlights */}
       <div className="flex items-center justify-between border-b-2 border-neutral-200 gap-2 overflow-x-auto pb-1 scrollbar-none">
         <div className="flex items-center gap-1.5 flex-nowrap min-w-max">
+          {/* 1. View Detail */}
+          <button
+            type="button"
+            onClick={() => setActiveTab('view_detail')}
+            className={`px-3.5 py-2 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 cursor-pointer ${
+              activeTab === 'view_detail'
+                ? 'bg-emerald-900 text-white shadow-xs'
+                : 'bg-white text-neutral-700 hover:bg-neutral-100 border border-neutral-200'
+            }`}
+            id="tab-farmer-view-detail"
+          >
+            <User className="w-4 h-4 text-emerald-400" />
+            <span>1. {t('farmerTabDetail')}</span>
+          </button>
+
+          {/* 2. Sell Produce */}
+          <button
+            type="button"
+            onClick={() => setActiveTab('sell')}
+            className={`px-3.5 py-2 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 cursor-pointer ${
+              activeTab === 'sell'
+                ? 'bg-amber-600 text-white shadow-xs'
+                : 'bg-white text-neutral-700 hover:bg-neutral-100 border border-neutral-200'
+            }`}
+            id="tab-farmer-sell"
+          >
+            <Plus className="w-4 h-4 text-amber-300" />
+            <span>2. {t('farmerTabSell')}</span>
+          </button>
+
+          {/* 3. Received Money */}
+          <button
+            type="button"
+            onClick={() => setActiveTab('received_money')}
+            className={`px-3.5 py-2 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 cursor-pointer ${
+              activeTab === 'received_money'
+                ? 'bg-emerald-800 text-white shadow-xs'
+                : 'bg-white text-neutral-700 hover:bg-neutral-100 border border-neutral-200'
+            }`}
+            id="tab-farmer-received-money"
+          >
+            <IndianRupee className="w-4 h-4 text-emerald-400" />
+            <span>3. {t('farmerTabReceivedMoney')}</span>
+          </button>
+
+          {/* 4. Farmer Crop History & Yields */}
+          <button
+            type="button"
+            onClick={() => setActiveTab('crop_history')}
+            className={`px-3.5 py-2 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 cursor-pointer ${
+              activeTab === 'crop_history'
+                ? 'bg-teal-800 text-white shadow-xs'
+                : 'bg-white text-neutral-700 hover:bg-neutral-100 border border-neutral-200'
+            }`}
+            id="tab-farmer-crop-history"
+          >
+            <Sprout className="w-4 h-4 text-amber-300" />
+            <span>4. {t('farmerTabCropHistory')}</span>
+          </button>
+
+          {/* 5. Daily Farm Ops */}
           <button
             type="button"
             onClick={() => setActiveTab('daily')}
-            className={`px-4 py-2.5 text-xs font-bold rounded-xl transition-all flex items-center gap-2 cursor-pointer ${
+            className={`px-3.5 py-2 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 cursor-pointer ${
               activeTab === 'daily'
-                ? 'bg-emerald-800 text-white shadow-sm'
-                : 'bg-white text-neutral-600 hover:bg-neutral-100 border border-neutral-200'
+                ? 'bg-neutral-900 text-white shadow-xs'
+                : 'bg-white text-neutral-700 hover:bg-neutral-100 border border-neutral-200'
             }`}
             id="tab-farmer-daily"
           >
             <Calendar className="w-4 h-4 text-amber-400" />
-            <span>1. Today's Daily Farm Details</span>
+            <span>5. {t('farmerTabDaily')}</span>
           </button>
 
+          {/* 6. Transport Booking */}
           <button
             type="button"
             onClick={() => setActiveTab('transport')}
-            className={`px-4 py-2.5 text-xs font-bold rounded-xl transition-all flex items-center gap-2 cursor-pointer ${
+            className={`px-3.5 py-2 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 cursor-pointer ${
               activeTab === 'transport'
-                ? 'bg-violet-800 text-white shadow-sm'
-                : 'bg-white text-neutral-600 hover:bg-neutral-100 border border-neutral-200'
+                ? 'bg-violet-800 text-white shadow-xs'
+                : 'bg-white text-neutral-700 hover:bg-neutral-100 border border-neutral-200'
             }`}
             id="tab-farmer-transport"
           >
             <Truck className="w-4 h-4 text-violet-300" />
-            <span>2. Nearby Transport Availability &amp; Booking</span>
+            <span>6. {t('farmerTabTransport')}</span>
           </button>
 
+          {/* 7. Produce Inventory */}
           <button
             type="button"
             onClick={() => setActiveTab('inventory')}
-            className={`px-4 py-2.5 text-xs font-bold rounded-xl transition-all flex items-center gap-2 cursor-pointer ${
+            className={`px-3.5 py-2 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 cursor-pointer ${
               activeTab === 'inventory'
-                ? 'bg-emerald-800 text-white shadow-sm'
-                : 'bg-white text-neutral-600 hover:bg-neutral-100 border border-neutral-200'
+                ? 'bg-emerald-800 text-white shadow-xs'
+                : 'bg-white text-neutral-700 hover:bg-neutral-100 border border-neutral-200'
             }`}
             id="tab-farmer-inventory"
           >
             <Package className="w-4 h-4" />
-            <span>3. Produce &amp; Inventory ({farmProducts.length})</span>
+            <span>7. Inventory ({farmProducts.length})</span>
           </button>
 
+          {/* 8. Orders */}
           <button
             type="button"
             onClick={() => setActiveTab('orders')}
-            className={`px-4 py-2.5 text-xs font-bold rounded-xl transition-all flex items-center gap-2 cursor-pointer ${
+            className={`px-3.5 py-2 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 cursor-pointer ${
               activeTab === 'orders'
-                ? 'bg-emerald-800 text-white shadow-sm'
-                : 'bg-white text-neutral-600 hover:bg-neutral-100 border border-neutral-200'
+                ? 'bg-emerald-800 text-white shadow-xs'
+                : 'bg-white text-neutral-700 hover:bg-neutral-100 border border-neutral-200'
             }`}
             id="tab-farmer-orders"
           >
             <Layers className="w-4 h-4" />
-            <span>4. Orders &amp; Pickups ({farmOrders.length})</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveTab('payouts')}
-            className={`px-4 py-2.5 text-xs font-bold rounded-xl transition-all flex items-center gap-2 cursor-pointer ${
-              activeTab === 'payouts'
-                ? 'bg-emerald-800 text-white shadow-sm'
-                : 'bg-white text-neutral-600 hover:bg-neutral-100 border border-neutral-200'
-            }`}
-            id="tab-farmer-payouts"
-          >
-            <IndianRupee className="w-4 h-4" />
-            <span>5. Transparent ₹ Bank Ledger ({farmPayouts.length})</span>
+            <span>8. Orders ({farmOrders.length})</span>
           </button>
         </div>
 
@@ -405,6 +463,43 @@ export const FarmerPortal: React.FC = () => {
           </button>
         )}
       </div>
+
+      {/* 1. VIEW DETAIL TAB */}
+      {activeTab === 'view_detail' && (
+        <FarmerDetailView
+          farm={activeFarm}
+          user={currentUser}
+          onOpenProfile={() => setIsProfileModalOpen(true)}
+          onOpenSchemes={() => setIsSchemesModalOpen(true)}
+        />
+      )}
+
+      {/* 2. SELL TAB */}
+      {activeTab === 'sell' && (
+        <FarmerSellProduce
+          farmName={activeFarm.name}
+          farmLocation={activeFarm.locationName}
+          onAddProduct={(prodData) => {
+            addProduct(prodData);
+            setActiveTab('inventory');
+          }}
+        />
+      )}
+
+      {/* 3. RECEIVED MONEY TAB */}
+      {activeTab === 'received_money' && (
+        <FarmerReceivedMoney
+          payouts={farmPayouts}
+          farmName={activeFarm.name}
+          bankName={bankName}
+          bankAccount={bankAccountNumber}
+          ifscCode={ifscCode}
+          upiId={upiId}
+        />
+      )}
+
+      {/* 4. CROP HISTORY & YIELDS TAB */}
+      {activeTab === 'crop_history' && <FarmerCropHistoryYields />}
 
       {/* TAB 0: Today's Daily Farm Details (Default First Screen) */}
       {activeTab === 'daily' && (

@@ -16,6 +16,8 @@ import {
   User as UserIcon,
   HelpCircle,
   Check,
+  Eye,
+  EyeOff,
 } from 'lucide-react';
 import { useMarketplace } from '../context/MarketplaceContext';
 import { CustomerSignUpData, FarmerSignUpData } from '../types';
@@ -48,6 +50,8 @@ export const SignUpForms: React.FC<SignUpFormsProps> = ({
   const [role, setRole] = useState<'consumer' | 'farmer'>(initialRole);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [showCustomerPassword, setShowCustomerPassword] = useState(false);
+  const [showFarmerPassword, setShowFarmerPassword] = useState(false);
 
   // Phone OTP Verification States
   const [customerPhoneVerified, setCustomerPhoneVerified] = useState(false);
@@ -448,20 +452,37 @@ export const SignUpForms: React.FC<SignUpFormsProps> = ({
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-neutral-300 mb-1">
-                  Account Password <span className="text-emerald-400">*</span>
-                </label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-xs font-semibold text-neutral-300">
+                    Account Password <span className="text-emerald-400">*</span>
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setShowCustomerPassword(!showCustomerPassword)}
+                    className="text-[11px] text-neutral-400 hover:text-emerald-400 flex items-center gap-1 cursor-pointer transition-colors"
+                  >
+                    {showCustomerPassword ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+                    <span>{showCustomerPassword ? 'Hide' : 'See'}</span>
+                  </button>
+                </div>
                 <div className="relative">
-                  <Lock className="w-4 h-4 text-neutral-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <Lock className="w-4 h-4 text-neutral-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                   <input
-                    type="password"
+                    type={showCustomerPassword ? 'text' : 'password'}
                     required
                     value={customerData.password}
                     onChange={(e) => setCustomerData({ ...customerData, password: e.target.value })}
                     placeholder="••••••••••••"
-                    className="w-full pl-9 pr-3 py-2 bg-neutral-950 border border-neutral-800 rounded-xl text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-emerald-500"
+                    className="w-full pl-9 pr-10 py-2 bg-neutral-950 border border-neutral-800 rounded-xl text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-emerald-500"
                     id="input-customer-password"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowCustomerPassword(!showCustomerPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-200 p-1 cursor-pointer"
+                  >
+                    {showCustomerPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
                 </div>
               </div>
 
@@ -638,18 +659,37 @@ export const SignUpForms: React.FC<SignUpFormsProps> = ({
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-neutral-300 mb-1">
-                  Portal Password <span className="text-amber-400">*</span>
-                </label>
-                <input
-                  type="password"
-                  required
-                  value={farmerData.password}
-                  onChange={(e) => setFarmerData({ ...farmerData, password: e.target.value })}
-                  placeholder="••••••••••••"
-                  className="w-full px-3 py-2 bg-neutral-950 border border-neutral-800 rounded-xl text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-amber-500"
-                  id="input-farmer-password"
-                />
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-xs font-semibold text-neutral-300">
+                    Portal Password <span className="text-amber-400">*</span>
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setShowFarmerPassword(!showFarmerPassword)}
+                    className="text-[11px] text-neutral-400 hover:text-amber-400 flex items-center gap-1 cursor-pointer transition-colors"
+                  >
+                    {showFarmerPassword ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+                    <span>{showFarmerPassword ? 'Hide' : 'See'}</span>
+                  </button>
+                </div>
+                <div className="relative">
+                  <input
+                    type={showFarmerPassword ? 'text' : 'password'}
+                    required
+                    value={farmerData.password}
+                    onChange={(e) => setFarmerData({ ...farmerData, password: e.target.value })}
+                    placeholder="••••••••••••"
+                    className="w-full pl-3 pr-10 py-2 bg-neutral-950 border border-neutral-800 rounded-xl text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-amber-500"
+                    id="input-farmer-password"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowFarmerPassword(!showFarmerPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-200 p-1 cursor-pointer"
+                  >
+                    {showFarmerPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
               </div>
 
               {/* Grower Mobile Number & OTP Verification */}

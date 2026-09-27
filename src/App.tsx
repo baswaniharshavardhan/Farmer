@@ -19,8 +19,12 @@ import {
   UserCheck,
   Lock,
   Type,
+  Globe,
+  Info,
+  Sparkles,
 } from 'lucide-react';
 import { MarketplaceProvider, useMarketplace } from './context/MarketplaceContext';
+import { LanguageProvider, useLanguage } from './context/LanguageContext';
 import { ConsumerView } from './components/ConsumerView';
 import { FarmerPortal } from './components/FarmerPortal';
 import { LogisticsMap } from './components/LogisticsMap';
@@ -29,6 +33,7 @@ import { AdminPortal } from './components/AdminPortal';
 import { LoginPortal } from './components/LoginPortal';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { FocusedDeliveryMap } from './components/FocusedDeliveryMap';
+import { PortalInfoModal } from './components/PortalInfoModal';
 import { UserRole } from './types';
 
 const FONT_THEMES = [
@@ -88,6 +93,11 @@ const MainLayout: React.FC = () => {
     navigate,
     authToken,
   } = useMarketplace();
+
+  // Multi-Language Support
+  const { language, setLanguage, t, languages } = useLanguage();
+  const [isLangMenuOpen, setIsLangMenuOpen] = useState(false);
+  const [isPortalInfoOpen, setIsPortalInfoOpen] = useState(false);
 
   // Font Theme State
   const [fontTheme, setFontTheme] = useState<FontThemeId>(() => {
@@ -168,20 +178,20 @@ const MainLayout: React.FC = () => {
                   >
                     {currentUser.role === 'consumer' || currentUser.role === 'customer'
                       ? currentUser.buyerType === 'bulk'
-                        ? 'Bulk Commercial Buyer'
-                        : 'Customer (Normal Buyer)'
+                        ? t('bulkBuyer')
+                        : t('normalBuyer')
                       : currentUser.role === 'farmer'
-                      ? 'Farmer Portal'
-                      : 'Admin Governance'}
+                      ? t('farmerPortal')
+                      : t('adminGov')}
                   </span>
                 </div>
                 <p className="text-[11px] text-neutral-500 hidden md:block">
                   {(currentUser.role === 'consumer' || currentUser.role === 'customer') &&
-                    '88% Direct Producer Take-Home · Cold-Chain Delivery'}
+                    t('88% Direct Producer Take-Home · Cold-Chain Delivery')}
                   {currentUser.role === 'farmer' &&
-                    'Sunrise Organic Orchards · Real-Time Inventory & Dispatches'}
+                    t('Sunrise Organic Orchards · Real-Time Inventory & Dispatches')}
                   {currentUser.role === 'admin' &&
-                    'Platform Moderation, Ledger Audit & API Sandbox'}
+                    t('Platform Moderation, Ledger Audit & API Sandbox')}
                 </p>
               </div>
             </div>
@@ -203,7 +213,7 @@ const MainLayout: React.FC = () => {
                       id="tab-customer-market"
                     >
                       <ShoppingBag className="w-3.5 h-3.5" />
-                      <span>Produce Market</span>
+                      <span>{t('produceMarket')}</span>
                     </button>
 
                     {/* Live delivery tracking is removed for sample normal buyers, only available for bulk commercial buyers */}
@@ -219,7 +229,7 @@ const MainLayout: React.FC = () => {
                         id="tab-customer-map"
                       >
                         <Truck className="w-3.5 h-3.5" />
-                        <span>Live Delivery Tracking</span>
+                        <span>{t('liveDelivery')}</span>
                         {customerActiveOrder && (
                           <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                         )}
@@ -242,7 +252,7 @@ const MainLayout: React.FC = () => {
                       id="tab-farmer-portal"
                     >
                       <Tractor className="w-3.5 h-3.5" />
-                      <span>Daily Farm, Transport &amp; Payouts</span>
+                      <span>{t('Daily Farm, Transport & Payouts')}</span>
                     </button>
 
                     <button
@@ -256,7 +266,7 @@ const MainLayout: React.FC = () => {
                       id="tab-farmer-collection"
                     >
                       <Truck className="w-3.5 h-3.5" />
-                      <span>Pickup Route &amp; Hub</span>
+                      <span>{t('Pickup Route & Hub')}</span>
                     </button>
 
                     <button
@@ -270,7 +280,7 @@ const MainLayout: React.FC = () => {
                       id="tab-farmer-verify"
                     >
                       <CheckCircle2 className="w-3.5 h-3.5" />
-                      <span>88% Payout Audit &amp; Integrity</span>
+                      <span>{t('88% Payout Audit & Integrity')}</span>
                     </button>
                   </>
                 )}
@@ -289,7 +299,7 @@ const MainLayout: React.FC = () => {
                       id="tab-admin-governance"
                     >
                       <ShieldCheck className="w-3.5 h-3.5 text-purple-600" />
-                      <span>Approvals &amp; Ledger Audit</span>
+                      <span>{t('Approvals & Ledger Audit')}</span>
                     </button>
 
                     <button
@@ -303,7 +313,7 @@ const MainLayout: React.FC = () => {
                       id="tab-admin-health"
                     >
                       <CheckCircle2 className="w-3.5 h-3.5" />
-                      <span>API Testing &amp; System Health</span>
+                      <span>{t('API Testing & System Health')}</span>
                     </button>
 
                     <button
@@ -317,7 +327,7 @@ const MainLayout: React.FC = () => {
                       id="tab-admin-network"
                     >
                       <Truck className="w-3.5 h-3.5" />
-                      <span>Logistics Network Ops</span>
+                      <span>{t('Logistics Network Ops')}</span>
                     </button>
                   </>
                 )}
@@ -326,6 +336,119 @@ const MainLayout: React.FC = () => {
 
             {/* User Controls & Fast Role Switching */}
             <div className="flex items-center gap-2">
+              {/* Portal Info Button */}
+              <button
+                type="button"
+                onClick={() => setIsPortalInfoOpen(true)}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold border transition-colors shadow-2xs cursor-pointer bg-white text-neutral-700 border-neutral-200 hover:bg-neutral-50"
+                title={t('portalInfoDesc')}
+                id="btn-portal-info"
+              >
+                <Info className="w-3.5 h-3.5 text-emerald-700" />
+                <span className="hidden sm:inline">{t('portalInfo')}</span>
+              </button>
+
+              {/* Quick English Switch Button when in another language */}
+              {language !== 'en' && (
+                <button
+                  type="button"
+                  onClick={() => setLanguage('en')}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold border border-emerald-300 bg-emerald-50 hover:bg-emerald-100 text-emerald-900 transition-all shadow-2xs cursor-pointer animate-in fade-in"
+                  title="Switch to English / अंग्रेजी में बदलें"
+                  id="btn-quick-switch-en"
+                >
+                  <span>🇬🇧</span>
+                  <span className="font-bold">English</span>
+                </button>
+              )}
+
+              {/* Language Selector Dropdown */}
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setIsLangMenuOpen(!isLangMenuOpen)}
+                  className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold border transition-colors shadow-2xs cursor-pointer ${
+                    isLangMenuOpen
+                      ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
+                      : 'bg-white text-neutral-700 border-neutral-200 hover:bg-neutral-50'
+                  }`}
+                  title="Switch Language / भाषा निवडा / भाषा बदलें / English"
+                  id="btn-lang-switcher"
+                >
+                  <Globe className="w-3.5 h-3.5 text-emerald-700" />
+                  <span>{languages.find((l) => l.code === language)?.flag}</span>
+                  <span className="font-semibold text-emerald-900 hidden sm:inline">
+                    {languages.find((l) => l.code === language)?.nativeName}
+                  </span>
+                </button>
+
+                {isLangMenuOpen && (
+                  <div
+                    className="absolute right-0 mt-2 w-52 bg-white rounded-2xl border border-neutral-200 shadow-xl p-2 z-50 animate-in fade-in zoom-in-95 duration-150"
+                    id="lang-dropdown"
+                  >
+                    <div className="text-[10px] font-bold text-neutral-400 px-2 py-1 uppercase tracking-wider border-b pb-1 mb-1 flex items-center justify-between">
+                      <span>Choose Language / भाषा</span>
+                    </div>
+
+                    {/* Prominent English Option */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setLanguage('en');
+                        setIsLangMenuOpen(false);
+                      }}
+                      className={`w-full flex items-center justify-between px-2.5 py-2 mb-1 rounded-xl text-xs font-bold transition-all text-left cursor-pointer border ${
+                        language === 'en'
+                          ? 'bg-emerald-100 text-emerald-950 border-emerald-300 shadow-2xs'
+                          : 'bg-neutral-50 text-neutral-800 border-neutral-200 hover:bg-neutral-100'
+                      }`}
+                    >
+                      <span className="flex items-center gap-2">
+                        <span className="text-base">🇬🇧</span>
+                        <div>
+                          <div className="font-bold text-neutral-900">English</div>
+                          <div className="text-[10px] text-neutral-500 font-normal">Primary / Global</div>
+                        </div>
+                      </span>
+                      <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-md bg-neutral-200/80 text-neutral-700 font-bold">
+                        EN
+                      </span>
+                    </button>
+
+                    <div className="text-[9px] font-bold text-neutral-400 px-2 pt-1 pb-0.5 uppercase tracking-wider">
+                      Regional Languages / प्रादेशिक भाषाएं
+                    </div>
+
+                    <div className="space-y-1 max-h-56 overflow-y-auto">
+                      {languages.filter((l) => l.code !== 'en').map((l) => (
+                        <button
+                          key={l.code}
+                          type="button"
+                          onClick={() => {
+                            setLanguage(l.code);
+                            setIsLangMenuOpen(false);
+                          }}
+                          className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl text-xs font-medium transition-all text-left cursor-pointer ${
+                            language === l.code
+                              ? 'bg-emerald-100 text-emerald-900 font-bold'
+                              : 'text-neutral-700 hover:bg-neutral-100'
+                          }`}
+                        >
+                          <span className="flex items-center gap-2">
+                            <span>{l.flag}</span>
+                            <span>{l.nativeName}</span>
+                          </span>
+                          <span className="text-[10px] text-neutral-400 font-mono">
+                            {l.code.toUpperCase()}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
               {/* Font Style Picker Dropdown */}
               <div className="relative">
                 <button
@@ -449,16 +572,16 @@ const MainLayout: React.FC = () => {
                 </div>
               </div>
 
-              {/* Log Out Button */}
+              {/* Distinct & Highly Visible Log Out Button */}
               <button
                 type="button"
                 onClick={logout}
-                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-white hover:bg-rose-50 text-neutral-700 hover:text-rose-700 rounded-lg text-xs font-bold border border-neutral-200 hover:border-rose-200 transition-colors shadow-xs cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-black border border-rose-500 shadow-sm transition-all hover:scale-102 active:scale-98 cursor-pointer"
                 title="Log out and return to the Login Page"
                 id="btn-logout"
               >
-                <LogOut className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Log Out</span>
+                <LogOut className="w-3.5 h-3.5 text-white" />
+                <span>{t('logOut')}</span>
               </button>
             </div>
           </div>
@@ -767,14 +890,22 @@ const MainLayout: React.FC = () => {
           </div>
         </div>
       </footer>
+
+      {/* Portal Info Educational Modal */}
+      <PortalInfoModal
+        isOpen={isPortalInfoOpen}
+        onClose={() => setIsPortalInfoOpen(false)}
+      />
     </div>
   );
 };
 
 export default function App() {
   return (
-    <MarketplaceProvider>
-      <MainLayout />
-    </MarketplaceProvider>
+    <LanguageProvider>
+      <MarketplaceProvider>
+        <MainLayout />
+      </MarketplaceProvider>
+    </LanguageProvider>
   );
 }

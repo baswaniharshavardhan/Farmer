@@ -24,6 +24,11 @@ import {
   RotateCcw,
   Compass,
   Navigation,
+  Building2,
+  Store,
+  Radio,
+  QrCode,
+  Layers,
 } from 'lucide-react';
 import { useMarketplace } from '../context/MarketplaceContext';
 import { Product, ShippingLabelData } from '../types';
@@ -33,8 +38,88 @@ import { FocusedDeliveryMap } from './FocusedDeliveryMap';
 import { UserProfileModal } from './UserProfileModal';
 import { ReportIssueModal } from './ReportIssueModal';
 import { HeroEcosystem3D } from './HeroEcosystem3D';
+import { ThreeCanvasScene } from './ThreeCanvasScene';
+import { DailyMandiSales } from './DailyMandiSales';
+import { useLanguage } from '../context/LanguageContext';
+
+export interface PickupLocation {
+  id: string;
+  name: string;
+  distanceKm: number;
+  address: string;
+  gate: string;
+  hours: string;
+  contact: string;
+  manager: string;
+  coords: [number, number];
+  discountPct: number;
+}
+
+export const PICKUP_LOCATIONS: PickupLocation[] = [
+  {
+    id: 'loc-1',
+    name: 'APMC Market Yard Terminal 1 (Nashik Road)',
+    distanceKm: 1.8,
+    address: 'Near Old Agra Highway, Subhash Nagar, Nashik Road, MH 422101',
+    gate: 'Cold-Storage Gate 3 (Bay 4)',
+    hours: '06:00 AM - 07:30 PM (Daily)',
+    contact: '+91 98230 11200',
+    manager: 'Mahesh Jadhav (Depot Supervisor)',
+    coords: [19.9575, 73.8344],
+    discountPct: 5,
+  },
+  {
+    id: 'loc-2',
+    name: 'Kisan Vikas Kendra Cold Aggregation Point (Gangapur)',
+    distanceKm: 3.2,
+    address: 'Survey 42, Gangapur-Savargaon Road, Anandwalli, Nashik, MH 422013',
+    gate: 'Produce Bay A-12',
+    hours: '07:00 AM - 08:00 PM (Daily)',
+    contact: '+91 94222 88410',
+    manager: 'Ramesh Kulkarni',
+    coords: [19.9975, 73.7898],
+    discountPct: 5,
+  },
+  {
+    id: 'loc-3',
+    name: 'Satpur MIDC Farmers Agro-Logistics Depot',
+    distanceKm: 4.5,
+    address: 'Plot P-14, NICE Area, Satpur MIDC, Nashik, MH 422007',
+    gate: 'Loading Dock 2',
+    hours: '06:30 AM - 06:30 PM (Mon-Sat)',
+    contact: '+91 97654 32190',
+    manager: 'Sunil Shinde',
+    coords: [19.9932, 73.7421],
+    discountPct: 5,
+  },
+  {
+    id: 'loc-4',
+    name: 'Pune Agrimart Farmers Direct Pickup Depot (Koregaon)',
+    distanceKm: 2.1,
+    address: 'North Main Road, Near Lane 5, Koregaon Park, Pune, MH 411001',
+    gate: 'Pickup Bay 1',
+    hours: '07:00 AM - 08:30 PM (Daily)',
+    contact: '+91 98220 54321',
+    manager: 'Vikas Deshmukh',
+    coords: [18.5362, 73.894],
+    discountPct: 5,
+  },
+  {
+    id: 'loc-5',
+    name: 'Vashi APMC Central Cold Storage Terminal (Navi Mumbai)',
+    distanceKm: 3.7,
+    address: 'Sector 19, APMC Market-2, Vashi, Navi Mumbai, MH 400703',
+    gate: 'Cold Gate 9 (Direct Farmer Section)',
+    hours: '06:00 AM - 08:00 PM (Daily)',
+    contact: '+91 98190 76543',
+    manager: 'Pravin Patil',
+    coords: [19.076, 73.0033],
+    discountPct: 5,
+  },
+];
 
 export const ConsumerView: React.FC = () => {
+  const { t } = useLanguage();
   const {
     products,
     farms,
@@ -80,6 +165,16 @@ export const ConsumerView: React.FC = () => {
   const [paymentGateway, setPaymentGateway] = useState<'CashOnDelivery' | 'UPI' | 'Card'>('CashOnDelivery');
   const [checkoutSuccessOrder, setCheckoutSuccessOrder] = useState<any | null>(null);
 
+  // Fulfillment Mode & Nearest Pickup Location States
+  const [fulfillmentMode, setFulfillmentMode] = useState<'delivery' | 'pickup'>('pickup');
+  const [selectedPickupId, setSelectedPickupId] = useState<string>('loc-1');
+  const [heroMode, setHeroMode] = useState<'3d_farm' | '3d_ecosystem'>('3d_farm');
+  const [showDailyMandi, setShowDailyMandi] = useState<boolean>(true);
+
+  const selectedPickupLocation = useMemo(() => {
+    return PICKUP_LOCATIONS.find((loc) => loc.id === selectedPickupId) || PICKUP_LOCATIONS[0];
+  }, [selectedPickupId]);
+
   useEffect(() => {
     if (currentUser) {
       setBuyerName(currentUser.name);
@@ -112,10 +207,19 @@ export const ConsumerView: React.FC = () => {
   const handleCheckoutSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (cart.length === 0) return;
+
+    const finalAddress =
+      fulfillmentMode === 'pickup'
+        ? `[Self-Pickup Hub: ${selectedPickupLocation.name}] ${selectedPickupLocation.gate}, ${selectedPickupLocation.address} (Contact: ${selectedPickupLocation.contact})`
+        : buyerAddress;
+
+    const finalCoords =
+      fulfillmentMode === 'pickup' ? selectedPickupLocation.coords : buyerCoords;
+
     const newOrder = checkoutCart(
       buyerName,
-      buyerAddress,
-      buyerCoords,
+      finalAddress,
+      finalCoords,
       paymentGateway === 'CashOnDelivery'
         ? 'Pay on Delivery'
         : paymentGateway === 'UPI'
@@ -156,14 +260,121 @@ export const ConsumerView: React.FC = () => {
 
   return (
     <div className="space-y-6" id="consumer-buyer-app">
-      {/* 3D Web Reimagined Hero Ecosystem Presentation */}
-      <HeroEcosystem3D
-        onOpenProfile={() => setIsProfileModalOpen(true)}
-        onOpenReport={() => {
-          setReportTargetOrderId(undefined);
-          setIsReportModalOpen(true);
-        }}
-      />
+      {/* 3D Web Visual Switcher Header */}
+      <div className="flex items-center justify-between gap-3 bg-white p-3 rounded-2xl border border-neutral-200 shadow-2xs">
+        <div className="flex items-center gap-2">
+          <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping" />
+          <span className="text-xs font-black uppercase tracking-wider text-neutral-800">
+            {t('web3DActive')}
+          </span>
+          <span className="text-[11px] text-neutral-500 hidden sm:inline">
+            Interactive WebGL 3D Agricultural Simulation &amp; Ecosystem
+          </span>
+        </div>
+
+        <div className="flex items-center gap-1.5">
+          <button
+            type="button"
+            onClick={() => setHeroMode('3d_farm')}
+            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+              heroMode === '3d_farm'
+                ? 'bg-emerald-800 text-white shadow-xs'
+                : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200'
+            }`}
+          >
+            <span>🌾 3D Interactive Farm</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setHeroMode('3d_ecosystem')}
+            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+              heroMode === '3d_ecosystem'
+                ? 'bg-emerald-800 text-white shadow-xs'
+                : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200'
+            }`}
+          >
+            <span>📊 3D Ecosystem Metrics</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Render 3D Scene based on mode */}
+      {heroMode === '3d_farm' ? (
+        <ThreeCanvasScene />
+      ) : (
+        <HeroEcosystem3D
+          onOpenProfile={() => setIsProfileModalOpen(true)}
+          onOpenReport={() => {
+            setReportTargetOrderId(undefined);
+            setIsReportModalOpen(true);
+          }}
+        />
+      )}
+
+      {/* SAMPLE BUYER NEAREST PICKUP LOCATION HIGHLIGHT BANNER */}
+      <div
+        className="bg-gradient-to-r from-amber-950/80 via-neutral-900 to-emerald-950/80 border-2 border-amber-500/50 rounded-2xl p-4 sm:p-5 shadow-sm text-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
+        id="sample-buyer-pickup-banner"
+      >
+        <div className="flex items-start gap-3.5">
+          <div className="w-11 h-11 rounded-2xl bg-amber-500/20 text-amber-300 border border-amber-400/40 flex items-center justify-center flex-shrink-0">
+            <Store className="w-6 h-6" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="font-display font-black text-sm text-white">
+                Nearest Pickup Location (Sample Buyer Hub)
+              </span>
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-400 text-neutral-950 uppercase">
+                {selectedPickupLocation.distanceKm} km away
+              </span>
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
+                5% Direct Pickup Discount
+              </span>
+            </div>
+            <p className="text-xs text-amber-100/90 mt-1">
+              <strong>{selectedPickupLocation.name}</strong> · {selectedPickupLocation.gate} · {selectedPickupLocation.hours}
+            </p>
+            <p className="text-[11px] text-neutral-400 mt-0.5">
+              📍 {selectedPickupLocation.address} · Helpline: {selectedPickupLocation.contact} ({selectedPickupLocation.manager})
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          <button
+            type="button"
+            onClick={() => {
+              setFulfillmentMode('pickup');
+              setIsCheckoutModalOpen(true);
+            }}
+            className="w-full sm:w-auto px-4 py-2.5 bg-amber-500 hover:bg-amber-400 text-neutral-950 font-black rounded-xl text-xs flex items-center justify-center gap-2 shadow-sm transition-all hover:scale-102 cursor-pointer"
+          >
+            <MapPin className="w-4 h-4 text-neutral-950" />
+            <span>Select &amp; Pick Up Goods</span>
+          </button>
+        </div>
+      </div>
+
+      {/* DAILY MANDI SALES COMPONENT */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <button
+            type="button"
+            onClick={() => setShowDailyMandi(!showDailyMandi)}
+            className="text-xs font-bold text-neutral-700 hover:text-emerald-700 flex items-center gap-2 cursor-pointer"
+          >
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
+            <span className="uppercase tracking-wider font-mono">
+              {showDailyMandi ? '▼ Hide Live Daily Mandi Sales' : '▶ Show Live Daily Mandi Sales & Rates'}
+            </span>
+          </button>
+        </div>
+
+        {showDailyMandi && (
+          <DailyMandiSales onSelectCommodity={(commodity) => setSearchQuery(commodity)} />
+        )}
+      </div>
 
       {/* Order-Triggered Activation: Only displays when customer has an active order */}
       {customerActiveOrder && (
@@ -218,7 +429,7 @@ export const ConsumerView: React.FC = () => {
       )}
 
       {/* Search and Filters Bar */}
-      <div className="bg-white border border-neutral-200 rounded-xl p-3.5 shadow-xs flex flex-col md:flex-row gap-3 items-center justify-between">
+      <div className="bg-white border-2 border-emerald-950/10 rounded-2xl p-4 shadow-sm flex flex-col md:flex-row gap-3 items-center justify-between">
         {/* Search input */}
         <div className="relative w-full md:w-80">
           <Search className="w-4 h-4 text-neutral-400 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -227,7 +438,7 @@ export const ConsumerView: React.FC = () => {
             placeholder="Search mangoes, organic spinach, honey..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 bg-neutral-50 border border-neutral-200 rounded-lg text-xs text-neutral-800 placeholder-neutral-400 focus:outline-hidden focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all"
+            className="w-full pl-9 pr-4 py-2 bg-neutral-50 border border-neutral-200 rounded-xl text-xs text-neutral-800 placeholder-neutral-400 focus:outline-hidden focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all"
             id="input-consumer-search"
           />
         </div>
@@ -239,7 +450,7 @@ export const ConsumerView: React.FC = () => {
               key={cat}
               type="button"
               onClick={() => setSelectedCategory(cat)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors ${
+              className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer ${
                 selectedCategory === cat
                   ? 'bg-emerald-700 text-white shadow-xs'
                   : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200'
@@ -250,13 +461,13 @@ export const ConsumerView: React.FC = () => {
           ))}
         </div>
 
-        {/* Farm Filter Dropdown */}
+        {/* Farm Filter Dropdown & LARGE ATTRACTIVE CART BUTTON */}
         <div className="w-full md:w-auto flex items-center gap-2">
           <Filter className="w-4 h-4 text-neutral-400 flex-shrink-0" />
           <select
             value={selectedFarmId}
             onChange={(e) => setSelectedFarmId(e.target.value)}
-            className="w-full md:w-auto px-3 py-1.5 bg-neutral-50 border border-neutral-200 rounded-lg text-xs text-neutral-800 font-medium focus:outline-hidden focus:ring-2 focus:ring-emerald-500"
+            className="w-full md:w-auto px-3 py-2 bg-neutral-50 border border-neutral-200 rounded-xl text-xs text-neutral-800 font-medium focus:outline-hidden focus:ring-2 focus:ring-emerald-500"
             id="select-farm-filter"
           >
             <option value="all">All Member Farms</option>
@@ -267,20 +478,26 @@ export const ConsumerView: React.FC = () => {
             ))}
           </select>
 
-          {/* Floating / Inline Cart Button */}
+          {/* LARGE AND ATTRACTIVE 3D CART BUTTON */}
           <button
             type="button"
             onClick={() => setIsCartOpen(true)}
-            className="relative px-3.5 py-1.5 bg-neutral-900 hover:bg-neutral-800 text-white rounded-lg text-xs font-semibold flex items-center gap-2 shadow-xs transition-colors flex-shrink-0"
-            id="btn-open-cart"
+            className="group relative px-5 py-2.5 bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white rounded-2xl text-xs font-black flex items-center gap-2.5 shadow-[0_10px_25px_-4px_rgba(5,150,105,0.45)] hover:shadow-[0_15px_30px_-4px_rgba(5,150,105,0.6)] border-2 border-emerald-300/40 hover:scale-[1.04] active:scale-[0.98] transition-all cursor-pointer flex-shrink-0"
+            id="btn-open-cart-large"
+            title="Open Shopping Cart & Proceed to Checkout"
           >
-            <ShoppingBag className="w-4 h-4" />
-            <span>Cart</span>
-            {cartItemCount > 0 && (
-              <span className="bg-emerald-500 text-white text-[11px] font-bold px-1.5 py-0.2 rounded-full">
-                {cartItemCount}
-              </span>
-            )}
+            <div className="relative">
+              <ShoppingBag className="w-4 h-4 text-white group-hover:rotate-6 transition-transform" />
+              {cartItemCount > 0 && (
+                <span className="absolute -top-1.5 -right-2 bg-amber-400 text-neutral-950 font-black text-[10px] w-4 h-4 rounded-full flex items-center justify-center shadow-xs animate-bounce">
+                  {cartItemCount}
+                </span>
+              )}
+            </div>
+            <span className="tracking-wide uppercase text-[11px] font-extrabold">{t('viewCart')}</span>
+            <span className="bg-black/25 px-2 py-0.5 rounded-lg font-mono text-emerald-100 text-xs font-bold border border-white/20">
+              ₹{cartBreakdown.totalAmount.toFixed(0)}
+            </span>
           </button>
         </div>
       </div>
@@ -733,53 +950,159 @@ export const ConsumerView: React.FC = () => {
                 />
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-neutral-700 mb-1">
-                  Delivery Destination (Doorstep Address)
+              {/* Fulfillment Choice: Doorstep Delivery vs Nearest Hub Self-Pickup */}
+              <div className="p-3.5 bg-neutral-50 border border-neutral-200 rounded-2xl space-y-3">
+                <label className="block text-xs font-bold uppercase tracking-wider text-neutral-800">
+                  Fulfillment Mode:
                 </label>
-                <div className="space-y-2">
-                  <input
-                    type="text"
-                    required
-                    value={buyerAddress}
-                    onChange={(e) => setBuyerAddress(e.target.value)}
-                    className="w-full px-3 py-2 text-xs border border-neutral-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-hidden"
-                  />
-                  {/* Quick regional destination presets */}
-                  <div className="flex flex-wrap gap-1.5 text-[11px]">
-                    <span className="text-neutral-400 py-0.5">Quick Presets:</span>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setBuyerAddress('Flat 402, Green Meadows, Koregaon Park, Pune, MH 411001');
-                        setBuyerCoords([18.5362, 73.894]);
-                      }}
-                      className="px-2 py-0.5 bg-neutral-100 hover:bg-neutral-200 rounded text-neutral-700"
-                    >
-                      Pune Koregaon
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setBuyerAddress('12A, Sea View Apts, Bandra West, Mumbai, MH 400050');
-                        setBuyerCoords([19.0596, 72.8295]);
-                      }}
-                      className="px-2 py-0.5 bg-neutral-100 hover:bg-neutral-200 rounded text-neutral-700"
-                    >
-                      Mumbai Bandra
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setBuyerAddress('Plot 18, Gangapur Road, Anandwalli, Nashik, MH 422013');
-                        setBuyerCoords([19.9975, 73.7898]);
-                      }}
-                      className="px-2 py-0.5 bg-neutral-100 hover:bg-neutral-200 rounded text-neutral-700"
-                    >
-                      Nashik Gangapur
-                    </button>
-                  </div>
+                <div className="grid grid-cols-2 gap-2.5">
+                  <button
+                    type="button"
+                    onClick={() => setFulfillmentMode('delivery')}
+                    className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
+                      fulfillmentMode === 'delivery'
+                        ? 'bg-emerald-50 border-emerald-600 ring-2 ring-emerald-500/30'
+                        : 'bg-white border-neutral-200 hover:bg-neutral-100'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2 mb-1">
+                      <Truck className={`w-4 h-4 ${fulfillmentMode === 'delivery' ? 'text-emerald-700' : 'text-neutral-500'}`} />
+                      <span className="text-xs font-bold text-neutral-900">Doorstep Delivery</span>
+                    </div>
+                    <p className="text-[11px] text-neutral-500">
+                      Cold-chain electric van directly to your doorstep.
+                    </p>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setFulfillmentMode('pickup')}
+                    className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
+                      fulfillmentMode === 'pickup'
+                        ? 'bg-amber-50 border-amber-600 ring-2 ring-amber-500/30'
+                        : 'bg-white border-neutral-200 hover:bg-neutral-100'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-1">
+                      <div className="flex items-center gap-1.5">
+                        <Store className={`w-4 h-4 ${fulfillmentMode === 'pickup' ? 'text-amber-700' : 'text-neutral-500'}`} />
+                        <span className="text-xs font-bold text-neutral-900">Nearest Hub Pickup</span>
+                      </div>
+                      <span className="text-[10px] font-bold px-1.5 py-0.2 rounded-md bg-emerald-600 text-white">
+                        -5% Off
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-neutral-500">
+                      Collect in 45 mins at nearest APMC terminal. Zero delivery fee.
+                    </p>
+                  </button>
                 </div>
+
+                {/* If Pickup is selected: Render Nearest Pickup Points Selector */}
+                {fulfillmentMode === 'pickup' ? (
+                  <div className="pt-2 space-y-2.5 animate-in fade-in duration-150">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-neutral-800 flex items-center gap-1">
+                        <MapPin className="w-3.5 h-3.5 text-amber-600" />
+                        <span>Select Nearest Pickup Point (Sample Buyer Locations):</span>
+                      </span>
+                      <span className="text-[10px] text-emerald-700 font-bold bg-emerald-100 px-2 py-0.5 rounded-full">
+                        Ready within 45 Mins
+                      </span>
+                    </div>
+
+                    <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
+                      {PICKUP_LOCATIONS.map((loc) => {
+                        const isSelected = selectedPickupId === loc.id;
+                        return (
+                          <div
+                            key={loc.id}
+                            onClick={() => setSelectedPickupId(loc.id)}
+                            className={`p-3 rounded-xl border transition-all cursor-pointer ${
+                              isSelected
+                                ? 'bg-amber-50/80 border-amber-500 shadow-xs ring-1 ring-amber-400'
+                                : 'bg-white border-neutral-200 hover:border-neutral-300'
+                            }`}
+                          >
+                            <div className="flex items-start justify-between gap-2">
+                              <div>
+                                <div className="text-xs font-bold text-neutral-900 flex items-center gap-1.5">
+                                  <span>{loc.name}</span>
+                                  <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-amber-200 text-neutral-900">
+                                    {loc.distanceKm} km
+                                  </span>
+                                </div>
+                                <div className="text-[11px] text-neutral-600 mt-0.5">{loc.gate} · {loc.hours}</div>
+                                <div className="text-[10px] text-neutral-400 mt-0.5 truncate">{loc.address}</div>
+                              </div>
+
+                              <div className="text-right flex-shrink-0">
+                                <span className={`w-4 h-4 rounded-full border flex items-center justify-center ${isSelected ? 'border-amber-600 bg-amber-600 text-white' : 'border-neutral-300'}`}>
+                                  {isSelected && <span className="w-1.5 h-1.5 bg-white rounded-full" />}
+                                </span>
+                                <span className="text-[10px] text-emerald-700 font-bold mt-1 block">
+                                  Free Pickup
+                                </span>
+                              </div>
+                            </div>
+                            <div className="mt-1.5 pt-1.5 border-t border-neutral-150 flex items-center justify-between text-[10px] text-neutral-500">
+                              <span>Manager: {loc.manager}</span>
+                              <span className="font-mono text-emerald-800 font-bold">{loc.contact}</span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ) : (
+                  /* If Delivery is selected: Show Doorstep Address */
+                  <div className="pt-2 space-y-2 animate-in fade-in duration-150">
+                    <label className="block text-xs font-semibold text-neutral-700">
+                      Doorstep Delivery Address
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={buyerAddress}
+                      onChange={(e) => setBuyerAddress(e.target.value)}
+                      className="w-full px-3 py-2 text-xs border border-neutral-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-hidden"
+                    />
+                    {/* Quick regional destination presets */}
+                    <div className="flex flex-wrap gap-1.5 text-[11px]">
+                      <span className="text-neutral-400 py-0.5">Quick Presets:</span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setBuyerAddress('Flat 402, Green Meadows, Koregaon Park, Pune, MH 411001');
+                          setBuyerCoords([18.5362, 73.894]);
+                        }}
+                        className="px-2 py-0.5 bg-neutral-100 hover:bg-neutral-200 rounded text-neutral-700"
+                      >
+                        Pune Koregaon
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setBuyerAddress('12A, Sea View Apts, Bandra West, Mumbai, MH 400050');
+                          setBuyerCoords([19.0596, 72.8295]);
+                        }}
+                        className="px-2 py-0.5 bg-neutral-100 hover:bg-neutral-200 rounded text-neutral-700"
+                      >
+                        Mumbai Bandra
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setBuyerAddress('Plot 18, Gangapur Road, Anandwalli, Nashik, MH 422013');
+                          setBuyerCoords([19.9975, 73.7898]);
+                        }}
+                        className="px-2 py-0.5 bg-neutral-100 hover:bg-neutral-200 rounded text-neutral-700"
+                      >
+                        Nashik Gangapur
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Delivery Time Slot */}
@@ -964,6 +1287,42 @@ export const ConsumerView: React.FC = () => {
         labelData={activeShippingLabel}
         onClose={() => setActiveShippingLabel(null)}
       />
+
+      {/* Persistent Floating 3D Large & Attractive Cart Button */}
+      {cartItemCount > 0 && (
+        <aside
+          role="region"
+          aria-label="Floating shopping cart quick actions"
+          className="fixed bottom-6 right-6 z-40 animate-in slide-in-from-bottom duration-300"
+        >
+          <button
+            type="button"
+            onClick={() => setIsCartOpen(true)}
+            className="flex items-center gap-3.5 px-6 py-3.5 rounded-full bg-gradient-to-r from-emerald-700 via-emerald-600 to-teal-600 hover:from-emerald-600 hover:to-teal-500 text-white shadow-[0_15px_35px_rgba(6,78,59,0.5),0_0_20px_rgba(16,185,129,0.3)] border-2 border-emerald-300/50 hover:scale-105 active:scale-95 transition-all cursor-pointer backdrop-blur-md"
+            id="floating-3d-cart-button"
+            title="Click to View Shopping Cart and Checkout"
+          >
+            <div className="relative w-9 h-9 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
+              <ShoppingBag className="w-5 h-5 text-white" />
+              <span className="absolute -top-1 -right-1 bg-amber-400 text-neutral-950 font-black text-[11px] w-5 h-5 rounded-full flex items-center justify-center border-2 border-white shadow-xs animate-pulse">
+                {cartItemCount}
+              </span>
+            </div>
+            <div className="text-left">
+              <div className="text-[10px] uppercase font-bold tracking-wider text-emerald-200">
+                Cart · {cartItemCount} {cartItemCount === 1 ? 'Item' : 'Items'}
+              </div>
+              <div className="font-mono font-black text-sm text-white">
+                ₹{cartBreakdown.totalAmount.toFixed(2)}
+              </div>
+            </div>
+            <span className="bg-white hover:bg-neutral-100 text-emerald-900 font-extrabold px-3 py-1.5 rounded-full text-xs shadow-xs ml-1 flex items-center gap-1">
+              <span>Checkout</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </span>
+          </button>
+        </aside>
+      )}
     </div>
   );
 };
