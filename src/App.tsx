@@ -27,6 +27,7 @@ import { MarketplaceProvider, useMarketplace } from './context/MarketplaceContex
 import { LanguageProvider, useLanguage } from './context/LanguageContext';
 import { ConsumerView } from './components/ConsumerView';
 import { FarmerPortal } from './components/FarmerPortal';
+import { FarmerProfileKycView } from './components/FarmerProfileKycView';
 import { LogisticsMap } from './components/LogisticsMap';
 import { VerificationPanel } from './components/VerificationPanel';
 import { AdminPortal } from './components/AdminPortal';
@@ -127,7 +128,7 @@ const MainLayout: React.FC = () => {
 
   // Sub-tabs for the active role
   const [consumerTab, setConsumerTab] = useState<'market' | 'map'>('market');
-  const [farmerTab, setFarmerTab] = useState<'portal' | 'collection' | 'verify'>('portal');
+  const [farmerTab, setFarmerTab] = useState<'portal' | 'profile_kyc' | 'collection' | 'verify'>('portal');
   const [adminTab, setAdminTab] = useState<'governance' | 'health' | 'network'>('governance');
   const [isDualView, setIsDualView] = useState(false);
 
@@ -141,9 +142,9 @@ const MainLayout: React.FC = () => {
       {/* 3D Elevated Navigation Bar */}
       <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-xl border-b border-emerald-950/10 shadow-[0_4px_20px_-4px_rgba(6,78,59,0.08)]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16 gap-4">
+          <div className="flex items-center justify-between h-16 gap-3">
             {/* App Brand & Role Indicator */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 flex-shrink-0">
               <div
                 className={`w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-md flex-shrink-0 border border-white/20 ${
                   currentUser.role === 'consumer' || currentUser.role === 'customer'
@@ -198,14 +199,14 @@ const MainLayout: React.FC = () => {
 
             {/* Role-Specific Sub-Navigation (Hidden in Dual View) */}
             {!isDualView && (
-              <nav className="hidden md:flex items-center gap-1 bg-neutral-100/90 p-1 rounded-xl border border-neutral-200">
+              <nav className="hidden lg:flex items-center gap-1 bg-neutral-100/90 p-1 rounded-xl border border-neutral-200 min-w-0 overflow-x-auto scrollbar-none">
                 {/* 1. Customer Sub-tabs */}
                 {(currentUser.role === 'consumer' || currentUser.role === 'customer') && (
                   <>
                     <button
                       type="button"
                       onClick={() => setConsumerTab('market')}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
                         consumerTab === 'market'
                           ? 'bg-white text-emerald-800 shadow-xs'
                           : 'text-neutral-600 hover:text-neutral-900'
@@ -221,7 +222,7 @@ const MainLayout: React.FC = () => {
                       <button
                         type="button"
                         onClick={() => setConsumerTab('map')}
-                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
                           consumerTab === 'map'
                             ? 'bg-white text-emerald-800 shadow-xs'
                             : 'text-neutral-600 hover:text-neutral-900'
@@ -244,7 +245,7 @@ const MainLayout: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => setFarmerTab('portal')}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
+                      className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
                         farmerTab === 'portal'
                           ? 'bg-white text-amber-900 shadow-xs'
                           : 'text-neutral-600 hover:text-neutral-900'
@@ -257,8 +258,22 @@ const MainLayout: React.FC = () => {
 
                     <button
                       type="button"
+                      onClick={() => setFarmerTab('profile_kyc')}
+                      className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
+                        farmerTab === 'profile_kyc'
+                          ? 'bg-white text-emerald-900 shadow-xs'
+                          : 'text-neutral-600 hover:text-neutral-900'
+                      }`}
+                      id="tab-farmer-profile-kyc"
+                    >
+                      <UserCheck className="w-3.5 h-3.5 text-emerald-700" />
+                      <span>{t('Farmer Profile, Bank & KYC')}</span>
+                    </button>
+
+                    <button
+                      type="button"
                       onClick={() => setFarmerTab('collection')}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
+                      className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
                         farmerTab === 'collection'
                           ? 'bg-white text-amber-900 shadow-xs'
                           : 'text-neutral-600 hover:text-neutral-900'
@@ -272,7 +287,7 @@ const MainLayout: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => setFarmerTab('verify')}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
+                      className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
                         farmerTab === 'verify'
                           ? 'bg-white text-amber-900 shadow-xs'
                           : 'text-neutral-600 hover:text-neutral-900'
@@ -335,7 +350,7 @@ const MainLayout: React.FC = () => {
             )}
 
             {/* User Controls & Fast Role Switching */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-shrink-0">
               {/* Portal Info Button */}
               <button
                 type="button"
@@ -585,6 +600,136 @@ const MainLayout: React.FC = () => {
               </button>
             </div>
           </div>
+
+          {/* Mobile / Tablet Role Sub-Navigation Row */}
+          {!isDualView && (
+            <div className="flex lg:hidden items-center gap-1 pb-2.5 overflow-x-auto scrollbar-none">
+              {(currentUser.role === 'consumer' || currentUser.role === 'customer') && (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => setConsumerTab('market')}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
+                      consumerTab === 'market'
+                        ? 'bg-emerald-100 text-emerald-900 shadow-2xs'
+                        : 'bg-neutral-100 text-neutral-600'
+                    }`}
+                  >
+                    <ShoppingBag className="w-3.5 h-3.5" />
+                    <span>{t('produceMarket')}</span>
+                  </button>
+                  {currentUser.buyerType === 'bulk' && (
+                    <button
+                      type="button"
+                      onClick={() => setConsumerTab('map')}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
+                        consumerTab === 'map'
+                          ? 'bg-emerald-100 text-emerald-900 shadow-2xs'
+                          : 'bg-neutral-100 text-neutral-600'
+                      }`}
+                    >
+                      <Truck className="w-3.5 h-3.5" />
+                      <span>{t('liveDelivery')}</span>
+                    </button>
+                  )}
+                </>
+              )}
+
+              {currentUser.role === 'farmer' && (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => setFarmerTab('portal')}
+                    className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
+                      farmerTab === 'portal'
+                        ? 'bg-amber-100 text-amber-950 shadow-2xs'
+                        : 'bg-neutral-100 text-neutral-600'
+                    }`}
+                  >
+                    <Tractor className="w-3.5 h-3.5" />
+                    <span>{t('Daily Farm, Transport & Payouts')}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFarmerTab('profile_kyc')}
+                    className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
+                      farmerTab === 'profile_kyc'
+                        ? 'bg-emerald-100 text-emerald-950 shadow-2xs'
+                        : 'bg-neutral-100 text-neutral-600'
+                    }`}
+                  >
+                    <UserCheck className="w-3.5 h-3.5 text-emerald-700" />
+                    <span>{t('Farmer Profile, Bank & KYC')}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFarmerTab('collection')}
+                    className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
+                      farmerTab === 'collection'
+                        ? 'bg-amber-100 text-amber-950 shadow-2xs'
+                        : 'bg-neutral-100 text-neutral-600'
+                    }`}
+                  >
+                    <Truck className="w-3.5 h-3.5" />
+                    <span>{t('Pickup Route & Hub')}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFarmerTab('verify')}
+                    className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
+                      farmerTab === 'verify'
+                        ? 'bg-amber-100 text-amber-950 shadow-2xs'
+                        : 'bg-neutral-100 text-neutral-600'
+                    }`}
+                  >
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    <span>{t('88% Payout Audit & Integrity')}</span>
+                  </button>
+                </>
+              )}
+
+              {currentUser.role === 'admin' && (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => setAdminTab('governance')}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
+                      adminTab === 'governance'
+                        ? 'bg-purple-100 text-purple-950 shadow-2xs'
+                        : 'bg-neutral-100 text-neutral-600'
+                    }`}
+                  >
+                    <ShieldCheck className="w-3.5 h-3.5 text-purple-600" />
+                    <span>{t('Approvals & Ledger Audit')}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setAdminTab('health')}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
+                      adminTab === 'health'
+                        ? 'bg-purple-100 text-purple-950 shadow-2xs'
+                        : 'bg-neutral-100 text-neutral-600'
+                    }`}
+                  >
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    <span>{t('API Testing & System Health')}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setAdminTab('network')}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
+                      adminTab === 'network'
+                        ? 'bg-purple-100 text-purple-950 shadow-2xs'
+                        : 'bg-neutral-100 text-neutral-600'
+                    }`}
+                  >
+                    <Truck className="w-3.5 h-3.5" />
+                    <span>{t('Logistics Network Ops')}</span>
+                  </button>
+                </>
+              )}
+            </div>
+          )}
         </div>
       </header>
 
@@ -736,6 +881,8 @@ const MainLayout: React.FC = () => {
               <ProtectedRoute allowedRoles={['farmer']} targetPath="/farmer-dashboard">
                 <div className="space-y-8 animate-in fade-in duration-150">
                   {farmerTab === 'portal' && <FarmerPortal />}
+
+                  {farmerTab === 'profile_kyc' && <FarmerProfileKycView />}
 
                   {farmerTab === 'collection' && (
                     <div className="space-y-6">

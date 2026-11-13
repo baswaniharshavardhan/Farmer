@@ -19,7 +19,6 @@ import {
   FileText,
   BadgeCheck,
   Building2,
-  Landmark,
   User,
   ChevronRight,
   BookOpen,
@@ -146,10 +145,6 @@ export const FarmerPortal: React.FC = () => {
   };
 
   // Farmer Details fallback
-  const farmerAge = currentUser.age || 46;
-  const farmerGender = currentUser.gender || 'Male';
-  const farmerAadhaar = currentUser.aadhaarNumber || '5829-4102-4821';
-  const farmerLocation = currentUser.farmLocation || activeFarm.locationName;
   const fpoName = currentUser.fpoName || 'Sahyadri Farmers Producer Co. Ltd. (SFPC)';
   const fpoNumber = currentUser.fpoNumber || 'FPO-MH-2021-9842';
   const bankName = currentUser.bankName || 'State Bank of India';
@@ -219,64 +214,29 @@ export const FarmerPortal: React.FC = () => {
           </div>
         </div>
 
-        {/* Farmer Demographics & FPO Affiliation Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-4 border-t border-neutral-150">
+        {/* FPO Affiliation Banner */}
+        <div className="pt-4 border-t border-neutral-150">
           {/* FPO Affiliation Card */}
-          <div className="p-3.5 bg-emerald-50/60 border border-emerald-200 rounded-xl">
-            <div className="flex items-center justify-between mb-1.5">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-900 flex items-center gap-1">
-                <Building2 className="w-3.5 h-3.5 text-emerald-700" />
-                FPO Affiliation
-              </span>
-              <span className="text-[10px] font-semibold bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded">
-                Active Member
-              </span>
+          <div className="p-3.5 bg-emerald-50/60 border border-emerald-200 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-900 flex items-center gap-1">
+                  <Building2 className="w-3.5 h-3.5 text-emerald-700" />
+                  FPO Affiliation
+                </span>
+                <span className="text-[10px] font-semibold bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded">
+                  Active Member
+                </span>
+              </div>
+              <div className="text-xs font-bold text-neutral-900">{fpoName}</div>
             </div>
-            <div className="text-xs font-bold text-neutral-900">{fpoName}</div>
-            <div className="text-[11px] text-neutral-600 mt-1 font-mono">
-              Reg No: <span className="font-bold text-emerald-800">{fpoNumber}</span>
-            </div>
-            <div className="text-[11px] text-neutral-500 mt-0.5">
-              Cluster Inspector: <span className="text-neutral-700 font-medium">Ramesh Yadav (+91 98231 45678)</span>
-            </div>
-          </div>
-
-          {/* Farmer Profile Demographics Card */}
-          <div className="p-3.5 bg-neutral-50 border border-neutral-200 rounded-xl">
-            <div className="flex items-center justify-between mb-1.5">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-700 flex items-center gap-1">
-                <User className="w-3.5 h-3.5 text-neutral-500" />
-                Farmer Profile Details
-              </span>
-              <span className="text-[10px] font-semibold text-emerald-700">Verified</span>
-            </div>
-            <div className="text-xs font-bold text-neutral-900">{currentUser.name}</div>
-            <div className="text-[11px] text-neutral-600 mt-1">
-              Age: <span className="font-semibold text-neutral-800">{farmerAge} yrs</span> · Gender:{' '}
-              <span className="font-semibold text-neutral-800">{farmerGender}</span>
-            </div>
-            <div className="text-[11px] text-neutral-600 mt-0.5">
-              Aadhaar: <span className="font-mono text-neutral-700">{farmerAadhaar}</span> · 📍 {farmerLocation}
-            </div>
-          </div>
-
-          {/* Bank Account Direct Receiving Card */}
-          <div className="p-3.5 bg-sky-50/70 border border-sky-200 rounded-xl">
-            <div className="flex items-center justify-between mb-1.5">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-sky-950 flex items-center gap-1">
-                <Landmark className="w-3.5 h-3.5 text-sky-700" />
-                Direct Payout Bank Account
-              </span>
-              <span className="text-[10px] font-bold bg-sky-100 text-sky-800 px-1.5 py-0.5 rounded">
-                88% Net Receiving
-              </span>
-            </div>
-            <div className="text-xs font-bold text-neutral-900">{bankName}</div>
-            <div className="text-[11px] text-neutral-600 mt-1 font-mono">
-              A/C: <span className="font-bold text-neutral-800">{bankAccountNumber}</span> · IFSC: {ifscCode}
-            </div>
-            <div className="text-[11px] text-neutral-600 mt-0.5">
-              UPI ID: <span className="font-semibold text-sky-800">{upiId}</span>
+            <div className="sm:text-right">
+              <div className="text-[11px] text-neutral-600 font-mono">
+                Reg No: <span className="font-bold text-emerald-800">{fpoNumber}</span>
+              </div>
+              <div className="text-[11px] text-neutral-500 mt-0.5">
+                Cluster Inspector: <span className="text-neutral-700 font-medium">Ramesh Yadav (+91 98231 45678)</span>
+              </div>
             </div>
           </div>
         </div>

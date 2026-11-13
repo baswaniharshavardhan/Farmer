@@ -68,10 +68,6 @@ export const FarmerDetailView: React.FC<FarmerDetailViewProps> = ({
 
               <div className="flex items-center gap-3 mt-1 text-xs text-emerald-200/90 flex-wrap">
                 <span>📍 Dindori Agro-Belt, Nashik, Maharashtra</span>
-                <span>•</span>
-                <span>Aadhaar: <strong className="font-mono text-white">5829-••••-4821</strong></span>
-                <span>•</span>
-                <span>Kisan ID: <strong className="font-mono text-white">MH-NSK-2024-8841</strong></span>
               </div>
 
               <div className="mt-2 flex items-center gap-2">
